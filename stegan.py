@@ -23,22 +23,27 @@ class Steganograph:
         self.modded_pixels = 0
 
     def manip_text(self, r, g, b):
+        n_lsb = Steganograph.num_least_significant
         # Storing binary values of R, G, B values in a list
         binary_value = [int(bin(item).replace("0b", "")) for item in (r, g, b)]
         final = binary_value
         # Slicing binary value of the text to be stored in this cell
-        text_stream = self.sstream[(6 * self.count):(6 * self.count+6)]
+        i = 3 * n_lsb * self.count
+        j = i + 3 * n_lsb
+        text_stream = self.sstream[i:j]
         if self.verbose:
-            print("6 BIT STREAM: ", text_stream)
+            print("A BIT STREAM: ", text_stream)
         for index, value in enumerate(binary_value):
+            i = index * n_lsb
+            j = i + n_lsb
             if self.verbose:
-                print("2 BIT STREAM: ", text_stream[(index * 2):(index * 2+2)])
-            if(len(text_stream[(index * 2):(index * 2+2)]) < 2):
+                print("Z BIT STREAM: ", text_stream[i:j])
+            if(len(text_stream[i:j]) < n_lsb):
                 final[index] = int(str(value), 2)
             else:
                 # Using two least significant bits for data storage
-                modified_binary = int(value/100)*100 + \
-                    int(text_stream[(index * 2):(index * 2+2)])
+                modified_binary = int(value/(10 ** n_lsb))*(100 ** n_lsb) + \
+                    int(text_stream[i:j])
 
                 modified_decimal = int(str(modified_binary), 2)
 
@@ -49,6 +54,7 @@ class Steganograph:
         return final
 
     def hide(self, string, to_open):
+        n_lsb = Steganograph.num_least_significant
         self.string = string
         self.sstream = ''.join(format(ord(i), '08b') for i in self.string)
         width = self.image.size[0]
@@ -56,7 +62,7 @@ class Steganograph:
         pixel_map = self.image.load()
         for i in range(width):
             for j in range(height):
-                if self.count >= len(self.sstream) / 6:
+                if self.count >= len(self.sstream) / (2*n_lsb):
                     break
                 red, green, blue = pixel_map[i, j]
                 if self.verbose:
