@@ -73,7 +73,7 @@ class Steganograph:
                 pixel_map[i, j] = (red, green, blue)
                 self.count += 1
         print("{} pixels were coded.".format(self.modded_pixels))
-        self.image.save('output/out.png')
+        self.image.save('out.png')
         if(to_open):
             self.image.show()
 
