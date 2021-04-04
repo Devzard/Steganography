@@ -1,6 +1,6 @@
 from PIL import Image
 
-image = Image.open('assets/test.png')
+image = Image.open('output/out.png')
 pixel_map = image.load()
 
 width = image.size[0]
@@ -10,12 +10,14 @@ count = 0
 text = "python"
 text_bin = ''.join(format(ord(i), '08b') for i in text)
 
-def manip_text(r, g, b, count):
+yay = ""
+
+
+def manip_text(r, g, b, count, yay):
     binary_value = [int(bin(item).replace("0b", "")) for item in (r, g, b)]
-    text_input = text_bin[(6 * count):(6 * count+6)]
-    final = [int(str(int(value/100)*100 + int(text_input[(index * 2):(index * 2+2)])), 2)
-             for index, value in enumerate(binary_value)]
-    return final
+    for value in binary_value:
+        yay += str(binary_value % 100)
+
 
 for i in range(width):
     if count >= len(text_bin) / 6:
@@ -25,10 +27,9 @@ for i in range(width):
         if count >= len(text_bin) / 6:
             break
         print("OR: ", red, green, blue)
-        [red, green, blue] = manip_text(red, green, blue, count)
+        [red, green, blue] = manip_text(red, green, blue, count, yay)
         print(red, green, blue)
         pixel_map[i, j] = (red, green, blue)
         count += 1
 
-image.save('output/out.png')
-image.show()
+print(yay)
