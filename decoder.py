@@ -1,44 +1,53 @@
 from PIL import Image
-import binascii
 
-information = ''  # coded data
-
-
-def extract_information(red, green, blue):
-    extracted_data = ''
-    binary_value = [int(bin(item).replace("0b", ""))
-                    for item in (red, green, blue)]
-    for digit in binary_value:
-        print(digit)
-        digit = int(digit)
-        extracted_data += str(digit % 100)
-    return extracted_data
+ascii_str = ''
 
 
-def extract_text(image_path, text_length, information):
-    image = Image.open(image_path)
+def extract_least_significant_bit(red, green, blue, str_pos, data_len):
+    data_str = ''
+    if str_pos < data_len:
+        data_str += '{0}'.format(red % 10)
+    if str_pos + 1 < data_len:
+        data_str += '{0}'.format(green % 10)
+    if str_pos + 2 < data_len:
+        data_str += '{0}'.format(blue % 10)
+    return data_str
+
+
+def ascii_characters(ascii_str):
+    text = ''
+    for i in range(0, len(ascii_str), 3):
+        temp_str = ascii_str[i:i+3]
+        text += chr(int(temp_str))
+    return text
+
+
+def extract_text_from_image(img_path, ascii_str):
+    image = Image.open(img_path)
     pixel_map = image.load()
 
     width = image.size[0]
     height = image.size[1]
 
-    for i in range(width):
-        if i >= text_length/6:
+    red, green, blue = pixel_map[0, 0]
+    data_len = int('{r}{g}{b}'.format(r=red % 10, g=green % 10, b=blue % 10))
+
+    str_pos = 0
+
+    for i in range(1, width):
+        if str_pos > data_len:
             break
-        for j in range(height):
-            if i >= text_length/6:
+        for j in range(1, height):
+            if str_pos >= data_len:
                 break
-            # extract rgb
+
             red, green, blue = pixel_map[i, j]
-            # convert each to binary and copy the last two bits to information string
-            information += extract_information(red, green, blue)
-            # print("info",information)
-
-    # divide the information string by 8 characters and covert it to corresponding ASCII character
-    # for binary_idx in range(len(information), 8):
-    #     bin_str = information[binary_idx:binary_idx + 8]
-    #     ascii_char = binascii.b2a_uu(bin_str)
-        # print("-",ascii_char)
+            ascii_str += extract_least_significant_bit(
+                red, green, blue, str_pos, data_len)
+            str_pos += 3
+    # print(ascii_str)
+    text = ascii_characters(ascii_str)
+    print(text)
 
 
-extract_text('output/out.png', 48, information)
+extract_text_from_image("./output/out_.png", ascii_str)
